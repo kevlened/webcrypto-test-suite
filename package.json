@@ -1,0 +1,26 @@
+{
+  "name": "webcrypto-test-suite",
+  "version": "1.0.0",
+  "description": "A library to ensure your WebCrypto polyfill or shim works correctly",
+  "main": "index.js",
+  "scripts": {
+    "test": "karma start karma.conf.js --single-run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevlened/webcrypto-test-suite.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kevlened/webcrypto-test-suite/issues"
+  },
+  "homepage": "https://github.com/kevlened/webcrypto-test-suite#readme",
+  "devDependencies": {
+    "jasmine": "^3.1.0",
+    "jasmine-core": "^3.1.0",
+    "karma": "^2.0.4",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-firefox-launcher": "^1.1.0",
+    "karma-jasmine": "^1.1.2"
+  }
+}
