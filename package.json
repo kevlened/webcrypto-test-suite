@@ -1,10 +1,30 @@
 {
   "name": "webcrypto-test-suite",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "A library to ensure your WebCrypto polyfill or shim works correctly",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "karma start karma.conf.js --single-run"
+    "start": "karma start karma.conf.js",
+    "start:Chrome": "npm run start -- --browsers Chrome",
+    "start:ChromeHeadless": "npm run start -- --browsers ChromeHeadless",
+    "start:Firefox": "npm run start -- --browsers Firefox",
+    "start:FirefoxHeadless": "npm run start -- --browsers FirefoxHeadless",
+    "start:Safari": "npm run start -- --browsers Safari",
+    "start:SafariTechPreview": "npm run start -- --browsers SafariTechPreview",
+    "start:Edge": "npm run start -- --browsers Edge",
+    "start:EdgeVM": "npm run start -- --browsers EdgeVM",
+
+    "test": "karma start karma.conf.js --single-run",
+    "test:Chrome": "npm run test -- --browsers Chrome",
+    "test:ChromeHeadless": "npm run test -- --browsers ChromeHeadless",
+    "test:Firefox": "npm run test -- --browsers Firefox",
+    "test:FirefoxHeadless": "npm run test -- --browsers FirefoxHeadless",
+    "test:Safari": "npm run test -- --browsers Safari",
+    "test:SafariTechPreview": "npm run test -- --browsers SafariTechPreview",
+    "test:Edge": "npm run test -- --browsers Edge",
+    "test:EdgeVM": "npm run test -- --browsers EdgeVM",
+
+    "release": "npm test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm publish"
   },
   "repository": {
     "type": "git",
@@ -20,7 +40,13 @@
     "jasmine-core": "^3.1.0",
     "karma": "^2.0.4",
     "karma-chrome-launcher": "^2.2.0",
+    "karma-edge-launcher": "^0.4.2",
     "karma-firefox-launcher": "^1.1.0",
-    "karma-jasmine": "^1.1.2"
+    "karma-jasmine": "^1.1.2",
+    "karma-safari-launcher": "^1.0.0",
+    "karma-safaritechpreview-launcher": "0.0.6",
+    "karma-virtualbox-edge-launcher": "^1.1.8",
+    "karma-webpack": "^3.0.0",
+    "webpack": "^4.16.1"
   }
 }
