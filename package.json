@@ -1,6 +1,6 @@
 {
   "name": "webcrypto-test-suite",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A library to ensure your WebCrypto polyfill or shim works correctly",
   "main": "src/index.js",
   "scripts": {
