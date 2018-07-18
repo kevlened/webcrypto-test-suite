@@ -16,6 +16,10 @@ module.exports = function(config) {
     stack.pop();
   }
 
+  function clone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
   const testBuffer = new Uint8Array([1, 2, 3]).buffer;
 
   const algorithms = {
@@ -80,7 +84,7 @@ module.exports = function(config) {
       wdescribe(alg, function() {
         wit('generateKey', function() {
           return subtle.generateKey(
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign', 'verify'] // usages
           )
@@ -100,7 +104,7 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             keys[alg].shared, // key
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign', 'verify'], // usages
           )
@@ -121,7 +125,7 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             key,
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign', 'verify'], // usages
           )
@@ -141,13 +145,13 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             keys[alg].shared, // key
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign', 'verify'], // usages
           )
           .then(function(signingKey) {
             return subtle.sign(
-              algorithms[alg], // algo
+              clone(algorithms[alg]), // algo
               signingKey,
               testBuffer
             );
@@ -162,13 +166,13 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             keys[alg].shared, // key
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign', 'verify'], // usages
           )
           .then(function(verifyingKey) {
             return subtle.verify(
-              algorithms[alg], // algo
+              clone(algorithms[alg]), // algo
               verifyingKey, // key
               keys[alg].signedBuffer,
               testBuffer
@@ -223,7 +227,7 @@ module.exports = function(config) {
             return subtle.importKey(
               'jwk', // format
               keys[alg].private, // key
-              algorithms[alg], // algo
+              clone(algorithms[alg]), // algo
               true, // extractable
               ['sign'], // usages
             )
@@ -247,7 +251,7 @@ module.exports = function(config) {
             return subtle.importKey(
               'jwk', // format
               key,
-              algorithms[alg], // algo
+              clone(algorithms[alg]), // algo
               true, // extractable
               ['sign'], // usages
             )
@@ -271,7 +275,7 @@ module.exports = function(config) {
             return subtle.importKey(
               'jwk', // format
               key,
-              algorithms[alg], // algo
+              clone(algorithms[alg]), // algo
               true, // extractable
               ['verify'], // usages
             )
@@ -295,7 +299,7 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             key,
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign'], // usages
           )
@@ -322,13 +326,13 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             keys[alg].private, // key
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign'], // usages
           )
           .then(function(signingKey) {
             return subtle.sign(
-              algorithms[alg], // algo
+              clone(algorithms[alg]), // algo
               signingKey,
               testBuffer // buffer
             );
@@ -343,13 +347,13 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             keys[alg].public, // key
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['verify'], // usages
           )
           .then(function(verifyingKey) {
             return subtle.verify(
-              algorithms[alg], // algo
+              clone(algorithms[alg]), // algo
               verifyingKey, // key
               keys[alg].signedBuffer,
               testBuffer
@@ -366,7 +370,7 @@ module.exports = function(config) {
       wdescribe(alg, function() {
         wit('generateKey', function() {
           return subtle.generateKey(
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign', 'verify'] // usages
           )
@@ -393,7 +397,7 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             keys[alg].private, // key
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign'], // usages
           )
@@ -413,7 +417,7 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             key,
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign'], // usages
           )
@@ -435,13 +439,13 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             keys[alg].private, // key
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['sign'], // usages
           )
           .then(function(signingKey) {
             return subtle.sign(
-              algorithms[alg], // algo
+              clone(algorithms[alg]), // algo
               signingKey,
               testBuffer // buffer
             );
@@ -452,13 +456,13 @@ module.exports = function(config) {
             return subtle.importKey(
               'jwk', // format
               keys[alg].public, // key
-              algorithms[alg], // algo
+              clone(algorithms[alg]), // algo
               true, // extractable
               ['verify'], // usages
             )
             .then(function(verifyingKey) {
               return subtle.verify(
-                algorithms[alg], // algo
+                clone(algorithms[alg]), // algo
                 verifyingKey, // key
                 signature,
                 testBuffer
@@ -474,13 +478,13 @@ module.exports = function(config) {
           return subtle.importKey(
             'jwk', // format
             keys[alg].public, // key
-            algorithms[alg], // algo
+            clone(algorithms[alg]), // algo
             true, // extractable
             ['verify'], // usages
           )
           .then(function(verifyingKey) {
             return subtle.verify(
-              algorithms[alg], // algo
+              clone(algorithms[alg]), // algo
               verifyingKey, // key
               keys[alg].signedBuffer,
               testBuffer
