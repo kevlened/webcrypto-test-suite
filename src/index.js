@@ -1,9 +1,31 @@
 module.exports = function(config) {
-  const subtle = config.crypto.subtle;
+  var subtle = config.crypto.subtle;
   config.shouldSkip = config.shouldSkip || function() {};
 
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#Polyfill
+  function assign(target) {
+    if (target == null) {
+      throw new TypeError('Cannot convert undefined or null to object');
+    }
+
+    var to = Object(target);
+
+    for (var index = 1; index < arguments.length; index++) {
+      var nextSource = arguments[index];
+
+      if (nextSource != null) {
+        for (var nextKey in nextSource) {
+          if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+            to[nextKey] = nextSource[nextKey];
+          }
+        }
+      }
+    }
+    return to;
+  }
+
   // wrap describe and it
-  const stack = [];
+  var stack = [];
   function wdescribe(name, fn) {
     stack.push(name);
     config.shouldSkip(stack) ? xdescribe(name, fn) : describe(name, fn);
@@ -20,9 +42,9 @@ module.exports = function(config) {
     return JSON.parse(JSON.stringify(obj));
   }
 
-  const testBuffer = new Uint8Array([1, 2, 3]).buffer;
+  var testBuffer = new Uint8Array([1, 2, 3]).buffer;
 
-  const algorithms = {
+  var algorithms = {
     HS256: { name: 'HMAC', hash: { name: 'SHA-256' }},
     HS384: { name: 'HMAC', hash: { name: 'SHA-384' }},
     HS512: { name: 'HMAC', hash: { name: 'SHA-512' }},
@@ -34,7 +56,7 @@ module.exports = function(config) {
     ES512: { name: 'ECDSA', hash: { name: 'SHA-512' }, namedCurve: 'P-521' }
   };
 
-  const keys = {
+  var keys = {
     HS256: {
       shared: {alg: 'HS256', ext: true, k: 'exbIckCHFGdUfuPRwjXFXK_IqYMpFM30LoJYSHp-y4IQyO0YRDh0atzudr1S0UK1_tKn5BehGDk129N1is179g', key_ops: ['sign', 'verify'], kty: 'oct'},
       signedBuffer: new Uint8Array([59, 244, 165, 1, 105, 69, 184, 153, 190, 16, 167, 134, 157, 130, 179, 49, 137, 147, 56, 255, 0, 8, 138, 131, 115, 50, 96, 254, 185, 187, 214, 31]).buffer
@@ -106,7 +128,7 @@ module.exports = function(config) {
             keys[alg].shared, // key
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['sign', 'verify'], // usages
+            ['sign', 'verify'] // usages
           )
           .then(function(res) {
             expect(res).toBeDefined();
@@ -121,13 +143,13 @@ module.exports = function(config) {
         });
 
         wit('exportKey', function() {
-          const key = keys[alg].shared;
+          var key = keys[alg].shared;
           return subtle.importKey(
             'jwk', // format
             key,
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['sign', 'verify'], // usages
+            ['sign', 'verify'] // usages
           )
           .then(function(k) {
             return subtle.exportKey('jwk', k);
@@ -147,7 +169,7 @@ module.exports = function(config) {
             keys[alg].shared, // key
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['sign', 'verify'], // usages
+            ['sign', 'verify'] // usages
           )
           .then(function(signingKey) {
             return subtle.sign(
@@ -168,7 +190,7 @@ module.exports = function(config) {
             keys[alg].shared, // key
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['sign', 'verify'], // usages
+            ['sign', 'verify'] // usages
           )
           .then(function(verifyingKey) {
             return subtle.verify(
@@ -188,7 +210,7 @@ module.exports = function(config) {
     ['RS256', 'RS384', 'RS512'].map(function(alg) {
       wdescribe(alg, function() {
         wit('generateKey', function() {
-          const algo = Object.assign({
+          var algo = assign({
             modulusLength: 2048,
             publicExponent: new Uint8Array([0x01, 0x00, 0x01])
           }, algorithms[alg]);
@@ -229,7 +251,7 @@ module.exports = function(config) {
               keys[alg].private, // key
               clone(algorithms[alg]), // algo
               true, // extractable
-              ['sign'], // usages
+              ['sign'] // usages
             )
             .then(function(res) {
               expect(res).toBeDefined();
@@ -246,14 +268,14 @@ module.exports = function(config) {
           });
 
           wit('imports a private key without key_ops', function() {
-            const key = Object.assign({}, keys[alg].private);
+            var key = assign({}, keys[alg].private);
             delete key.key_ops;
             return subtle.importKey(
               'jwk', // format
               key,
               clone(algorithms[alg]), // algo
               true, // extractable
-              ['sign'], // usages
+              ['sign'] // usages
             )
             .then(function(res) {
               expect(res).toBeDefined();
@@ -270,14 +292,14 @@ module.exports = function(config) {
           });
 
           wit('imports a public key without key_ops', function() {
-            const key = Object.assign({}, keys[alg].public);
+            var key = assign({}, keys[alg].public);
             delete key.key_ops;
             return subtle.importKey(
               'jwk', // format
               key,
               clone(algorithms[alg]), // algo
               true, // extractable
-              ['verify'], // usages
+              ['verify'] // usages
             )
             .then(function(res) {
               expect(res).toBeDefined();
@@ -295,18 +317,18 @@ module.exports = function(config) {
         });
 
         wit('exportKey', function() {
-          const key = keys[alg].private;
+          var key = keys[alg].private;
           return subtle.importKey(
             'jwk', // format
             key,
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['sign'], // usages
+            ['sign'] // usages
           )
           .then(function(k) {
             return subtle.exportKey('jwk', k);
           })
-          .then(res => {
+          .then(function(res) {
             expect(res.alg).toEqual(key.alg);
             expect(res.d).toEqual(key.d);
             expect(res.dp).toEqual(key.dp);
@@ -328,7 +350,7 @@ module.exports = function(config) {
             keys[alg].private, // key
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['sign'], // usages
+            ['sign'] // usages
           )
           .then(function(signingKey) {
             return subtle.sign(
@@ -349,7 +371,7 @@ module.exports = function(config) {
             keys[alg].public, // key
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['verify'], // usages
+            ['verify'] // usages
           )
           .then(function(verifyingKey) {
             return subtle.verify(
@@ -399,7 +421,7 @@ module.exports = function(config) {
             keys[alg].private, // key
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['sign'], // usages
+            ['sign'] // usages
           )
           .then(function(res) {
             expect(res).toBeDefined();
@@ -413,13 +435,13 @@ module.exports = function(config) {
         });
 
         wit('exportKey', function() {
-          const key = keys[alg].private;
+          var key = keys[alg].private;
           return subtle.importKey(
             'jwk', // format
             key,
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['sign'], // usages
+            ['sign'] // usages
           )
           .then(function(k) {
             return subtle.exportKey('jwk', k);
@@ -441,7 +463,7 @@ module.exports = function(config) {
             keys[alg].private, // key
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['sign'], // usages
+            ['sign'] // usages
           )
           .then(function(signingKey) {
             return subtle.sign(
@@ -458,7 +480,7 @@ module.exports = function(config) {
               keys[alg].public, // key
               clone(algorithms[alg]), // algo
               true, // extractable
-              ['verify'], // usages
+              ['verify'] // usages
             )
             .then(function(verifyingKey) {
               return subtle.verify(
@@ -480,7 +502,7 @@ module.exports = function(config) {
             keys[alg].public, // key
             clone(algorithms[alg]), // algo
             true, // extractable
-            ['verify'], // usages
+            ['verify'] // usages
           )
           .then(function(verifyingKey) {
             return subtle.verify(

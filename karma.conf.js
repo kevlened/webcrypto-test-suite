@@ -18,6 +18,7 @@ module.exports = function(config) {
       'src/harness.js': ['webpack']
     },
     webpack: {
+      mode: 'none',
       node: false
     },
     reporters: ['progress'],
