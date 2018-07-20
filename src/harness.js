@@ -24,3 +24,13 @@ require('./')({
     }
   }
 });
+
+// Must be run last. Check for console due to IE<10
+describe('WebWorker compatibility', function() {
+  it('skips all if "describe is undefined"', function() {
+    delete window.describe;
+    spyOn(console, 'log');
+    require('./')();
+    expect(console.log).toHaveBeenCalledWith('No global "describe" function found for specs');
+  });
+});

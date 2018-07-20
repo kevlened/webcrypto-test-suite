@@ -1,4 +1,9 @@
 module.exports = function(config) {
+  if (typeof describe === 'undefined') {
+    console.log('No global "describe" function found for specs');
+    return;
+  }
+
   var subtle = config.crypto.subtle;
   config.shouldSkip = config.shouldSkip || function() {};
 
