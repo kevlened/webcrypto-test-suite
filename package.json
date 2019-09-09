@@ -13,7 +13,6 @@
     "start:SafariTechPreview": "npm run start -- --browsers SafariTechPreview",
     "start:Edge": "npm run start -- --browsers Edge",
     "start:EdgeVM": "npm run start -- --browsers EdgeVM",
-
     "test": "karma start karma.conf.js --single-run",
     "test:Chrome": "npm run test -- --browsers Chrome",
     "test:ChromeHeadless": "npm run test -- --browsers ChromeHeadless",
@@ -23,7 +22,6 @@
     "test:SafariTechPreview": "npm run test -- --browsers SafariTechPreview",
     "test:Edge": "npm run test -- --browsers Edge",
     "test:EdgeVM": "npm run test -- --browsers EdgeVM",
-
     "release": "npm test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm publish"
   },
   "repository": {
@@ -38,7 +36,7 @@
   "devDependencies": {
     "jasmine": "^3.1.0",
     "jasmine-core": "^3.1.0",
-    "karma": "^2.0.4",
+    "karma": "^4.3.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-edge-launcher": "^0.4.2",
     "karma-firefox-launcher": "^1.1.0",
@@ -46,7 +44,7 @@
     "karma-safari-launcher": "^1.0.0",
     "karma-safaritechpreview-launcher": "0.0.6",
     "karma-virtualbox-edge-launcher": "^1.1.8",
-    "karma-webpack": "^3.0.0",
-    "webpack": "^4.16.1"
+    "karma-webpack": "^4.0.2",
+    "webpack": "^4.39.3"
   }
 }

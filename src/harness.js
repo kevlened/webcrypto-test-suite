@@ -8,6 +8,9 @@ require('./')({
       if (spec.includes('ES512')) return true;
       if (spec.includes('RS384') && spec.includes('exportKey')) return true;
       if (spec.includes('RS512') && spec.includes('exportKey')) return true;
+      if (spec.includes('PS256') && spec.includes('exportKey')) return true;
+      if (spec.includes('PS384') && spec.includes('exportKey')) return true;
+      if (spec.includes('PS512') && spec.includes('exportKey')) return true;
     }
     if (isEdge) {
       if (spec.includes('ES256')) return true;
