@@ -1,5 +1,6 @@
 const ua = navigator.userAgent;
 const isSafari = ua.includes('Safari') && !ua.includes('Chrome');
+const isChrome = !isSafari && ua.includes('Chrome');
 const isEdge = ua.includes('Edge');
 require('./')({
   crypto,
@@ -24,6 +25,10 @@ require('./')({
       if (spec.includes('RS384') && spec.includes('generateKey')) return true;
       if (spec.includes('RS512') && spec.includes('importKey')) return true;
       if (spec.includes('RS512') && spec.includes('generateKey')) return true;
+    }
+    if (isChrome) {
+      if (spec.includes('A192GCM')) return true;
+      if (spec.includes('A192CBC')) return true;
     }
   }
 });

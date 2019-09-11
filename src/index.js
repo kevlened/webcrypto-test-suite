@@ -48,7 +48,10 @@ module.exports = function(config) {
   }
 
   var testBuffer = new Uint8Array([1, 2, 3]).buffer;
+  var gcmIv = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  var cbcIv = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
 
+  // https://www.iana.org/assignments/jose/jose.xhtml
   var algorithms = {
     HS256: { name: 'HMAC', hash: { name: 'SHA-256' }},
     HS384: { name: 'HMAC', hash: { name: 'SHA-384' }},
@@ -61,20 +64,89 @@ module.exports = function(config) {
     PS512: { name: 'RSA-PSS', hash: { name: 'SHA-512' }, saltLength: 64 },
     ES256: { name: 'ECDSA', hash: { name: 'SHA-256' }, namedCurve: 'P-256' },
     ES384: { name: 'ECDSA', hash: { name: 'SHA-384' }, namedCurve: 'P-384' },
-    ES512: { name: 'ECDSA', hash: { name: 'SHA-512' }, namedCurve: 'P-521' }
+    ES512: { name: 'ECDSA', hash: { name: 'SHA-512' }, namedCurve: 'P-521' },
+    'RSA-OAEP': { name: 'RSA-OAEP', hash: { name: 'SHA-1' }},
+    'RSA-OAEP-256': { name: 'RSA-OAEP', hash: { name: 'SHA-256' }},
+    'RSA-OAEP-384': { name: 'RSA-OAEP', hash: { name: 'SHA-384' }},
+    'RSA-OAEP-512': { name: 'RSA-OAEP', hash: { name: 'SHA-512' }},
+    // A128KW: { name: 'AES-KW', length: 128 },
+    // A192KW: { name: 'AES-KW', length: 192 },
+    // A256KW: { name: 'AES-KW', length: 256 },
+    // 'ECDH-ES': { name: 'ECDH'},
+    A128GCM: { name: 'AES-GCM', length: 128 },
+    A192GCM: { name: 'AES-GCM', length: 192 },
+    A256GCM: { name: 'AES-GCM', length: 256 },
+    A128CBC: { name: 'AES-CBC', length: 128 },
+    A192CBC: { name: 'AES-CBC', length: 192 },
+    A256CBC: { name: 'AES-CBC', length: 256 },
   };
+
+//   const wrapped = {
+//     'ECDH-ES+A128KW': { name: 'AES-KW', length: 128 },
+//     'ECDH-ES+A192KW': { name: 'AES-KW', length: 192 },
+//     'ECDH-ES+A256KW': { name: 'AES-KW', length: 256 },
+//     'PBES2-HS256+A128KW': { name: ''},
+//     'PBES2-HS384+A192KW': { name: ''},
+//     'PBES2-HS512+A256KW': { name: ''},
+//   };
+
+//   const AESGCMWrapped = ['A128GCMKW', 'A192GCMKW', 'A256GCMKW'];
+
+//   const encodings = {
+//     'A128CBC-HS256': { name: ''},
+//     'A192CBC-HS384': { name: ''},
+//     'A256CBC-HS512': { name: ''}
+//   }
+
+// async function generateKey(alg) {
+//     const algo = assign({
+//         // modulusLength: 2048,
+//         // publicExponent: new Uint8Array([0x01, 0x00, 0x01])
+//     }, algorithms[alg]);
+//     try {
+//         const sharedKey = await subtle.generateKey(
+//             algo,
+//             true,
+//             ['encrypt', 'decrypt']
+//         );
+//         // const pub = await subtle.exportKey('jwk', publicKey);
+//         // const priv = await subtle.exportKey('jwk', privateKey);
+//         const shared = await subtle.exportKey('jwk', sharedKey);
+//         console.log(JSON.stringify({
+//             // public: JSON.stringify(pub).replace(/"/g, "'"),
+//             // private: JSON.stringify(priv).replace(/"/g, "'"),
+//             shared: JSON.stringify(shared).replace(/"/g, "'"),
+//             signedBuffer: 'new Uint8Array([' + Array.from(new Uint8Array(await subtle.encrypt(
+//                 Object.assign(clone(algorithms[alg]), {iv}),
+//                 sharedKey, // publicKey,
+//                 testBuffer
+//             ))).toString() + ']).buffer,'
+//         }, null, 2));    
+//     } catch (e) {
+//         console.log('e', e.message);
+//     }
+// }
+// generateKey('A128CBC');
+
+// describe('hi', () => {
+//     it('does something', () => new Promise(res => setTimeout(res, 3000)));
+// });
+// return;
 
   var keys = {
     HS256: {
       shared: {alg: 'HS256', ext: true, k: 'exbIckCHFGdUfuPRwjXFXK_IqYMpFM30LoJYSHp-y4IQyO0YRDh0atzudr1S0UK1_tKn5BehGDk129N1is179g', key_ops: ['sign', 'verify'], kty: 'oct'},
+      raw: new Uint8Array([123,22,200,114,64,135,20,103,84,126,227,209,194,53,197,92,175,200,169,131,41,20,205,244,46,130,88,72,122,126,203,130,16,200,237,24,68,56,116,106,220,238,118,189,82,209,66,181,254,210,167,228,23,161,24,57,53,219,211,117,138,205,123,246]).buffer,
       signedBuffer: new Uint8Array([59, 244, 165, 1, 105, 69, 184, 153, 190, 16, 167, 134, 157, 130, 179, 49, 137, 147, 56, 255, 0, 8, 138, 131, 115, 50, 96, 254, 185, 187, 214, 31]).buffer
     },
     HS384: {
       shared: {alg: 'HS384', ext: true, k: 'WV6mfck3BpEJfm_THCfew7IGIOAMqFQAuqen1LnoNAv8WfcvARPG77ei4Q_f-yi1GK8uoqkbTxDfvBwNxrE-G-1-nuagsHHluF-VpMnfNzLrXbZB-MQO3kMDUsYf7JtjbhpxxtvIdzTHzwl9j4YLvB90FoJwMMP0Y5LB2LlC8lQ', key_ops: ['sign', 'verify'], kty: 'oct'},
+      raw: new Uint8Array([89,94,166,125,201,55,6,145,9,126,111,211,28,39,222,195,178,6,32,224,12,168,84,0,186,167,167,212,185,232,52,11,252,89,247,47,1,19,198,239,183,162,225,15,223,251,40,181,24,175,46,162,169,27,79,16,223,188,28,13,198,177,62,27,237,126,158,230,160,176,113,229,184,95,149,164,201,223,55,50,235,93,182,65,248,196,14,222,67,3,82,198,31,236,155,99,110,26,113,198,219,200,119,52,199,207,9,125,143,134,11,188,31,116,22,130,112,48,195,244,99,146,193,216,185,66,242,84]).buffer,
       signedBuffer: new Uint8Array([50, 181, 167, 140, 125, 186, 142, 47, 193, 119, 9, 117, 201, 147, 108, 172, 245, 239, 211, 154, 35, 142, 203, 105, 193, 44, 96, 195, 52, 118, 159, 52, 120, 53, 30, 158, 38, 98, 91, 224, 162, 251, 145, 255, 95, 38, 215, 183]).buffer
     },
     HS512: {
       shared: {alg: 'HS512', ext: true, k: 'wVCi2ajYM2L_9ku0Lqq_Xj5Ui8zCkpS8ltCdILgj3UN7eM4H7KMHTBJFp9oVqgIc1JyMxly2eWLxGOxamXhukSOQlsQIqC_G5sG-z4p2uknZIn3nNjKHLQSCrh16usQ0h-N5b4nEsZURtnTx9PtAE9ef8H5ja0VvLHvz0lE1OXs', key_ops: ['sign', 'verify'], kty: 'oct'},
+      raw: new Uint8Array([193,80,162,217,168,216,51,98,255,246,75,180,46,170,191,94,62,84,139,204,194,146,148,188,150,208,157,32,184,35,221,67,123,120,206,7,236,163,7,76,18,69,167,218,21,170,2,28,212,156,140,198,92,182,121,98,241,24,236,90,153,120,110,145,35,144,150,196,8,168,47,198,230,193,190,207,138,118,186,73,217,34,125,231,54,50,135,45,4,130,174,29,122,186,196,52,135,227,121,111,137,196,177,149,17,182,116,241,244,251,64,19,215,159,240,126,99,107,69,111,44,123,243,210,81,53,57,123]).buffer,
       signedBuffer: new Uint8Array([1, 74, 166, 3, 15, 141, 222, 221, 35, 124, 95, 182, 202, 23, 52, 91, 199, 135, 70, 175, 7, 3, 128, 81, 221, 104, 30, 197, 175, 172, 31, 166, 214, 152, 114, 32, 253, 29, 174, 135, 201, 111, 144, 9, 41, 101, 157, 85, 227, 116, 176, 54, 100, 215, 138, 94, 29, 166, 89, 243, 126, 142, 134, 119]).buffer
     },
     RS256: {
@@ -121,31 +193,64 @@ module.exports = function(config) {
       public: {crv: 'P-521', ext: true, key_ops: ['verify'], kty: 'EC', x: 'AYCWh_Ke7CTWDY3ssog9SD8Ugjs7j_uUaZWcB1tR8upMkpd2peH4gp5BjtXYDEZrHQCF02YNWmuskyJttL6ZDp09', y: 'AfXjzgorxGOQFuGigV9Igm-5sqRiAJZWXzCHEjJjNj_SEtxC3N4iETCoUOhLys9nkV-t3Xog-1xYPIoQ0qUJ5157'},
       private: {crv: 'P-521', d: 'AT4boQwA47hWCiv0_220NwtyhJ5fRuSwukZh--SdNlh7YDUekEHoUbdI3s6Ss2hxnWMlF83r0cKLr5beQ7rjmCdb', ext: true, key_ops: ['sign'], kty: 'EC', x: 'AYCWh_Ke7CTWDY3ssog9SD8Ugjs7j_uUaZWcB1tR8upMkpd2peH4gp5BjtXYDEZrHQCF02YNWmuskyJttL6ZDp09', y: 'AfXjzgorxGOQFuGigV9Igm-5sqRiAJZWXzCHEjJjNj_SEtxC3N4iETCoUOhLys9nkV-t3Xog-1xYPIoQ0qUJ5157'},
       signedBuffer: new Uint8Array([0, 70, 39, 13, 189, 184, 34, 252, 119, 97, 31, 26, 251, 224, 189, 1, 65, 194, 20, 46, 152, 84, 169, 193, 224, 143, 126, 215, 175, 89, 252, 247, 154, 83, 220, 106, 28, 181, 246, 55, 197, 220, 39, 8, 146, 14, 233, 148, 136, 78, 5, 21, 119, 58, 214, 50, 250, 31, 153, 170, 53, 75, 189, 246, 191, 45, 0, 121, 230, 221, 209, 182, 167, 177, 114, 102, 121, 88, 189, 164, 62, 242, 110, 7, 248, 167, 77, 85, 17, 117, 138, 92, 94, 19, 100, 232, 154, 21, 240, 170, 175, 194, 215, 80, 218, 89, 68, 108, 75, 227, 24, 130, 213, 231, 110, 73, 74, 45, 125, 147, 185, 172, 186, 32, 206, 209, 173, 203, 217, 131, 66, 50]).buffer
-    }
+    },
+    'RSA-OAEP': {
+        public: {'alg':'RSA-OAEP','e':'AQAB','ext':true,'key_ops':['encrypt'],'kty':'RSA','n':'1EGwH0G0RI0goqBRyC6sDRv5jx_ffRQ7qvrls3pGmN1lX1XnKCSTtD_i0vglx2-n4wBNt9Nvajaf6mwg0lfU8HliUJKdkOgF5m9Aqp4S1xe2K9IDfbciogZHqsmWfAD0e_04Vow2_lNEehKDuIYw0Gdn7UNq6EU9IImR8k0ktQkwIgVnz34ONijYNHEHO8FAge060gA68CZsTQacH4S_3ZI4rug7nWNh5YOVjzkBeR2Kxmm7F12TuSkWWX1W5vDIadFhATEBvnhTjLPXjCqsZe43_9hU7sTeZ75i_HNQ02Q8FuBOTz8J485EXD3pj-eZYpl50dqu4jSNJYrplbMDSw'},
+        private: {'alg':'RSA-OAEP','d':'EZxPnhBIAiYJbqTJlEfXC5FmH8tfshODLdj6RO1gvR8lYYcRkkGSpbJlQebHz6fCcLGeQSHATToyA3OsN3eFGdygXRoFC7hMgQV7Aozx-Dml6jXXB0-yBmpp-NAX9brojf8A9SFWELzc4hn2JtGvbCMgOs3MqW_RNglj_AwNfx2Y0AiBEal5KoRT2XNaUQdaBjLQ6kVKVSr6VGVgpbBWZEQVXd20QUncMci8bB7uZ6NKW4HKS2sPm1011wBR4FKoFM4hsRV_SrhSguUY0y3Z1UsuIiMgWP8tMUyEFdob0XBc8YpDYhXabNALe9dvZjV7DN8HeivOhj1dt1lXg0Ld1Q','dp':'B6Y-l7QM5dQgch4X0JkqRia8FaMingfZQ6lbedeHb5Se_P-wU-aUECnx112Wpr6FzLgjVHAveDYoOWvOk_-P9f1vb_pLnnbCLSayjbHO_8po8jTHC_B-UaK3Vohtee-GqZzdHn_haMsXuZw2vmhImt1Pm2Gg6wORpJAMRMeNcQ','dq':'lk91Rd4sk__1VNaDdSVjtaVLfEgdukdezVY1vHv3S_v4r_JIkGfWXP3f1K_gUKIZt32WrxNIXs7pnVLBi3slo2zoSW7iB05WnA0X_32R8QY51qpoMWD1c1-2FTheL6ASEUupIa67t9hOh0dUA4nwZMvXeBCfEVYqcU5F0wfLw4U','e':'AQAB','ext':true,'key_ops':['decrypt'],'kty':'RSA','n':'1EGwH0G0RI0goqBRyC6sDRv5jx_ffRQ7qvrls3pGmN1lX1XnKCSTtD_i0vglx2-n4wBNt9Nvajaf6mwg0lfU8HliUJKdkOgF5m9Aqp4S1xe2K9IDfbciogZHqsmWfAD0e_04Vow2_lNEehKDuIYw0Gdn7UNq6EU9IImR8k0ktQkwIgVnz34ONijYNHEHO8FAge060gA68CZsTQacH4S_3ZI4rug7nWNh5YOVjzkBeR2Kxmm7F12TuSkWWX1W5vDIadFhATEBvnhTjLPXjCqsZe43_9hU7sTeZ75i_HNQ02Q8FuBOTz8J485EXD3pj-eZYpl50dqu4jSNJYrplbMDSw','p':'9MjHvlSTPCDIx9E91h9b6iBHi-cIJU7pcFPkZmAo44HSM9Wqctz-18BAKe3AiqWRZ74BknB9DLQN8oD_-cR-saytrTdzGEwUfRv2jIuWMy0Xk7coFvFIRCEfJ_iAS6ATJHDXa5_9FZAQln4LU-DgZL1PFieJlI-VBDYamnpHEa8','q':'3fte_XzGY3HjftM97-j537BxoWbT_hFqlPGLPpJr1z7L-JwstjnIxlTFVEkbgKm1DMv-5W9IJnwoViQj9rpTX5L4CQpl4JXiHr7pU47TRz1DbLDFZ9C8US9CoPNqOFPdR6zaBT-weay5c5ZzZzVgvZAHrvYISJ_LEBfaw7JwGyU','qi':'RUGrOCYyLrK-UyBn3mDwrSgc5eGW5iWX3zBFkZBAIINBS39KhCOHzZMsnT_OTXPtMfotZc6sRqFMHjBLf6Be5VCQzcBFGAqb4GRFNM2rD8fHWzd9kfjO467RtxZv0Ip83wFzcr7uMrlG6XyGM5047O1uYvdikr20_n124r2KenA'},
+        signedBuffer: new Uint8Array([132,17,37,18,109,158,30,219,233,81,66,135,12,153,79,28,186,98,109,228,59,60,57,30,119,147,217,204,9,16,184,66,221,90,162,30,43,10,245,76,33,177,207,224,31,118,120,240,92,88,67,244,128,182,153,138,62,156,124,142,198,128,60,93,178,199,101,91,49,83,166,186,125,185,35,133,54,227,46,112,100,228,242,190,117,192,159,172,176,95,10,47,53,97,135,199,106,128,65,179,254,22,156,206,237,56,110,136,246,83,220,182,71,179,106,248,196,83,213,240,17,127,70,11,195,35,159,126,112,77,31,241,155,101,237,219,222,194,236,6,172,231,138,219,216,74,104,228,48,71,106,56,141,156,19,21,164,176,142,172,227,112,101,79,108,204,127,179,242,201,142,48,227,33,226,68,254,123,113,54,56,131,217,55,127,122,75,212,22,84,229,48,139,236,214,202,209,218,51,17,195,155,27,193,8,109,217,70,245,6,1,163,134,90,120,34,4,8,102,241,87,225,232,232,214,224,4,93,31,32,191,27,248,226,41,248,28,255,168,136,70,221,250,72,159,71,173,198,124,86,65,193,221,212,236,109]).buffer,
+      },
+    'RSA-OAEP-256': {
+        public: {'alg':'RSA-OAEP-256','e':'AQAB','ext':true,'key_ops':['encrypt'],'kty':'RSA','n':'tVnSnXi9bc9aPHX_MwlHK2TVo4yd_Zzs27m7QRAfgga3T6YswPmEHQS4-Pl8f5Vmutx07XcZkXxQ7kf5yoSCuOu43p0ldoBh6sH_30e1FhXEOQmZbd1ZMmPq1UOorbe4yZFpSuDOO_w5H4K1_hqe7qr-Vu1cYZHGXhrMSv9tSvcRlZ32GH1BLgkf6zwDyEY7RYJatFHxkd5h4eYHKfBM6Bwp3wiunfmxlp-fLD655WLHzZvga57xjLjvps5oTPa9NA2lyg3HH82ogm0p9ATMEuHwZ760QF2CtvOWiWO8oIrPefTrv3GE51S_ZpIrhB3WRgtW30Re0LuzGRorYjnupw'},
+        private: {'alg':'RSA-OAEP-256','d':'MJ0DeHMFVIphBhQbdPLnwRomqtDnCTUnyT7gk3BfAdwLB67kEFbSs3SwoQ0_8nN6Nl0iewWSNQ2-JCHnNAKRiECoLgSyJjIEDYozrQbr5B-xmhiYqHrNjlR6fvDEJs05G89_CjN5FVtndKr1XkiEkjYEOAko2n7ZTiCg4vnVsmJUbCcajrTrIdmygL1l00jkF0mv27sH59occIYosCU2boRBCb_h0eZIqKOi2TYNrQ5XFvSgUNYJnDt3EDTQkBMji8orquVyZDSytFqjFwF8nmhhmhuD_MAwlo46Z9Ihtj8S6sdQhq-ij1exZgZ1PLuckGqP35Uxmp8FFVmtQNJ0AQ','dp':'iV2s5y_p4jDkTEJpkQGg2ycUlNUqiCE_gM9G15YZQK9SyRW0nO21Zq92BkWkxZtaN-Gh1hxrKIScmLNtx7Gupv9nHTxAXG8HtKmvicoOsvOyzOlWx3DT8klK_ifmvF2Psm5uYxzZ1BwfVV505ppviX9vkDe-nj5mewoStDEVPqE','dq':'UmrOHHtnC-3fjQZqaGrFepz0D4wk_5vSfcYXsJnDY8uue8fsW9xvJRNTVAW6ljjp8XNfn9eyRSaKMRA8RgXWueE-tA-PLJc8IzlsS_Ggntv2OHiyBN-I6J8QVTldQJNHGhmTDM_mf6WV2JwPVlyJrk0kZFseagvyJ5iUH_6vYWc','e':'AQAB','ext':true,'key_ops':['decrypt'],'kty':'RSA','n':'tVnSnXi9bc9aPHX_MwlHK2TVo4yd_Zzs27m7QRAfgga3T6YswPmEHQS4-Pl8f5Vmutx07XcZkXxQ7kf5yoSCuOu43p0ldoBh6sH_30e1FhXEOQmZbd1ZMmPq1UOorbe4yZFpSuDOO_w5H4K1_hqe7qr-Vu1cYZHGXhrMSv9tSvcRlZ32GH1BLgkf6zwDyEY7RYJatFHxkd5h4eYHKfBM6Bwp3wiunfmxlp-fLD655WLHzZvga57xjLjvps5oTPa9NA2lyg3HH82ogm0p9ATMEuHwZ760QF2CtvOWiWO8oIrPefTrv3GE51S_ZpIrhB3WRgtW30Re0LuzGRorYjnupw','p':'8bSFJ2qqf3LXVQpWDHnqj5hLhblBpe6KHGRKqbFLK8JGW2rOysam8IOA23kyIMzEC-dEqWYvn8X4XbIoPlmkl0Ci9GhKntJ8imijqVp3_GMtyyjdtT6AOIGjQ0D1RA-IrkrCP3LGiGDMcoUp5IexLWzIa7ZdtZx7EWupDjnh5LE','q':'wBOF0wYx-OOxQ0P9L3xOvWS8jn14OlfCQZryMj8WWFmsFDH_bwGjgPlLXLFJlVIIhjKkv5F3U9d3FFmp4hGTnGhCP8NvupSOzUxrbxbrL0elOUKmvHBRNG1JjMh7Y3XzimzVeyI7Z8o64iFo0AhNg9XkuKa6k_1z7dqw9ZogPtc','qi':'k9RLw9MzEADteNYlXlkkdBM6Gu4Gka177OGwXGgfDn12A_coLUkJLPCQGyy58ad_6qIpmJVNaiJtKly6nUo7710sZBSZ61jQpMEXd7aQLhpNlQFojtVcLVnhkSh3Wtc6mbAUpKhSyevgcqTCjy_VDgsySh15j3aqTtKDGLbheIA'},
+        signedBuffer: new Uint8Array([48,216,181,43,238,135,0,3,230,129,67,25,93,81,236,132,89,88,254,60,34,24,147,210,17,104,67,122,21,213,248,236,6,184,231,228,177,84,245,100,247,7,195,130,161,4,172,38,147,47,168,179,233,240,241,234,216,104,14,58,122,58,112,150,223,249,11,115,7,218,152,170,109,2,186,209,183,91,56,14,247,224,79,195,94,221,17,62,156,182,242,154,16,156,185,137,132,169,88,246,112,217,161,12,166,215,33,70,137,56,20,156,235,89,26,235,248,251,210,242,127,11,17,216,136,159,79,153,81,249,246,13,66,30,164,139,111,222,244,101,215,111,10,19,210,248,126,96,190,169,171,255,190,236,197,139,165,238,137,108,142,177,202,210,113,141,36,86,72,72,243,150,253,182,116,167,165,0,178,224,88,123,242,204,156,131,83,241,219,154,191,42,220,74,99,171,175,198,236,130,126,12,32,153,29,200,78,235,65,0,251,170,61,125,159,239,189,248,125,234,138,233,43,25,42,145,171,118,132,202,237,233,89,68,81,116,208,117,122,132,193,130,159,153,47,199,49,88,137,163,236,99,198,140,128,33]).buffer,
+    },
+    'RSA-OAEP-384': {
+        public: {'alg':'RSA-OAEP-384','e':'AQAB','ext':true,'key_ops':['encrypt'],'kty':'RSA','n':'ql87hKZKHy_0eV33FfPrVAdfBUObSoTnWJknv_Ge2SEOhvYwtxNAZiEkHwkm0_kkqFPrgclIcD4a9oWn0Hroyv892_YmxTnjxZlT5K1WAoMW1Lpw-Ev4-fFNOdfWbqDK0yBnElAh_4ok44qfu2f5rj9LAJ8sTcIrofD8188BCZcUx_wSOIYEmlmeWBPGk2Dq7tXybh6ImAzpCIUGYL_iAl8Luo29ZLnmqUuNycdWpj_yMUH2CK3dvv-zJ_Q5BpMPZNFarWGQXQb7gmNl3G0c0dQxO4QbtwN6n0a0Ruh9bbYCuHP4rnx7y79l1PJlznSwTsi3SIlFDppkGYa0yqwKOQ'},
+        private: {'alg':'RSA-OAEP-384','d':'E9_KFJ5FVUAF18aTVTdAA2xctEN_sQCx8A7lqSlpa1DE3g-H_UM8pu1Exm4N3npYwV4QwfIWBinogUt0GQjNcSi3MZqUSTuIi3toYuupdd-O4T_if8R1BcsVRCMee4c8Qcas32EDpkiaJwT7vyPQ53ewqyDmTSfSaTCwfghCybhqIsxOQGqeIHj7vTgDo3Y8sjr8YgGa6T3aY-ZT4NQuflam0LJqCcyewbZY-JkcpoUvX_tYg9UOUUGPH22wCMBY7bBbyee8fkmipzzSyCc1iP2T9C5ayTwaHg3MAGwkuN8nIaGxNrF2Ynyb7y4I9fZIkKOAWzF9TMGLG47ILOp1FQ','dp':'c-OrSAvfLGNQ6yfBfq-hz4IRcK2--wi7k3PRdRxZ0VXZEJyLwVDqLoerObMJK7LiaKIR6YOYV3uxPUU69ulqMzlMxXTDoaqP8Lml-fE0oqU-b56JgPZXP1BGr85k62ZJKo_EYG5sbYVUVbG2FQBoJ9okr1_rKLhu8VGhSzNMGFU','dq':'gkgVhvWkjWRH2wgl3dJaOeXbVYtYQmqY4pFi2T6GwR0crVfWP4jwulpCIuLgAXIOlCY1fG1S17EPqAgl9-joakC3h8-fUgVCnbuqNQgzDhDN6keSV1IN-vLAZwcfdcqhHYiT1mR28-ijsGeOIoah8qnu-PRp6_1nRyDhHVME5Qs','e':'AQAB','ext':true,'key_ops':['decrypt'],'kty':'RSA','n':'ql87hKZKHy_0eV33FfPrVAdfBUObSoTnWJknv_Ge2SEOhvYwtxNAZiEkHwkm0_kkqFPrgclIcD4a9oWn0Hroyv892_YmxTnjxZlT5K1WAoMW1Lpw-Ev4-fFNOdfWbqDK0yBnElAh_4ok44qfu2f5rj9LAJ8sTcIrofD8188BCZcUx_wSOIYEmlmeWBPGk2Dq7tXybh6ImAzpCIUGYL_iAl8Luo29ZLnmqUuNycdWpj_yMUH2CK3dvv-zJ_Q5BpMPZNFarWGQXQb7gmNl3G0c0dQxO4QbtwN6n0a0Ruh9bbYCuHP4rnx7y79l1PJlznSwTsi3SIlFDppkGYa0yqwKOQ','p':'5JZUcUj1YoCGuty7fgNc9ajCDyA_7NQGkOBm4bvpe-_ehLhVKvuK8brDQBsknnEvOg09tlqHyE9Vk7hgviB2Esu-9joKf0zkFnLacZAF0t1Cd-TzCWIdWkgCV8gRlK5pEb5grnVdxGDZLPczCspeN2Zex-XySlU2bMP4BjMAGuM','q':'vs2vOnHUY_s_V6vXO8FHBm-2G1OQBQz3DbnKgLEGPUTcLFm-3AF9KUrqqYkyEIWjUwHv8IwKfH7Wep5ULRiqCkrfYJdAwG2XXGAWEDn8i9DE297G85r0jAbFC8DnAtUSEqvB9TB90F3F5OP6Fcz2NSsdllsxzUaJ-i1YLQMSxTM','qi':'RXt0liFR2rUgZ6eSsV80qY6wGdj8utoI_WYfVMXUxsU80UqmU_gidmESLstYgoYAcu1aB6IBQp1OmQbmKcL72xvvjHtwZPjvjDfDetKOwJLPCPkG-pIlKvXIeRtHA_XVgpibC1Cr7NGCMOEJjrqXqpEF37or9cV_guTuSPriwC4'},
+        signedBuffer: new Uint8Array([111,102,227,132,201,114,183,74,109,109,124,32,53,97,65,168,99,124,173,5,71,53,78,205,68,122,200,234,133,61,103,75,132,194,206,110,172,22,87,162,188,44,115,73,225,204,123,111,95,165,15,182,135,255,56,254,14,166,37,42,7,234,87,174,115,129,92,45,106,229,125,193,55,236,16,45,87,75,32,41,119,37,146,207,233,202,110,111,77,60,36,47,120,89,201,225,201,87,137,229,83,182,134,13,235,226,108,250,60,237,231,185,209,91,31,129,166,93,215,32,133,3,149,47,41,215,5,73,25,127,107,87,105,95,112,184,190,212,210,84,116,35,134,204,112,160,211,26,60,95,4,160,251,159,80,82,24,215,9,26,140,159,35,107,227,241,251,100,100,144,246,82,152,202,83,230,10,218,147,231,9,100,215,124,225,90,3,209,122,112,124,82,34,93,230,116,107,173,166,14,65,126,107,118,41,138,211,90,255,79,129,214,196,243,252,224,97,65,205,222,234,35,183,171,137,14,52,26,220,109,253,97,200,41,224,53,224,21,189,172,164,45,75,170,108,20,130,157,166,143,206,224,145,161,115,223]).buffer,
+    },
+    'RSA-OAEP-512': {
+        public: {'alg':'RSA-OAEP-512','e':'AQAB','ext':true,'key_ops':['encrypt'],'kty':'RSA','n':'lWbIVdJiKqg9KQTB14uKlK2ogeU802_wm1E4s8EC33mGV2xJTuRki_SF9WmRYjgj6aDTyEuBWvTDohuaYNh1HbJxJ_yHNhqKg3HD3MRcUDuOeW1Ixt0wFW-Ui1UJGrVFLjz_bHQvZn4M1LLZWYtegxg_DVp5EZsa6-U1fQvwdyrg9A9JLhync-49vUnX_k67wPKwrsz9kz7a1GuZAceMPuJxL_fkjCwyEzwsDyhUFoWycChVkB7bvlIzCsEWzcH1AgfNTxTPHpX87nQb64qtekQvLSXLMoefgO957Jh1BwrTqzZqmjWyIFhduDWv4hUKhY1uy6N0Ms1cgOr8Viq41w'},
+        private: {'alg':'RSA-OAEP-512','d':'D7PFyn9aIfGcu_rsBKN95TJ7S2u0gOR6_VgEBaB7lNFI9VdEPS50AuGoUqrNxOzxmVR17c9BwTWIejk8eIFHjd97VSCNdXpEpJwIYeOhcC1SRCDgTUZiD16y1hIR6uSyaLGwhs2PTc5hutkxTt__Bvg9aEHiB5-trK1iecoPc_a8ni1oydQQnyYwWu2875UbN-NH5yzcId31BUDmUhMTtrbAnO5iNtKmmVV0zJg0IAWD4CKUMqaOXota_YJMuOIbj1lXgY6dW2NjccKDLazP26RtAAHSMrWlmrCaZoI-RlTNYR40BttSSOAb-gM7hP_IcgXQPeRnILK-59O4xwQNwQ','dp':'jAACghg8I_YJg8O62p28zq_dfwmoyyWSaNJQx782dhl8pBQabpNe2k04NwalnLOEJqeK4Z94V1x_iG4FhSWQSh_kyBLAI5INaCKbGdGibozOPBE-B9KymvgtXVLgjfTzQyDiVIoEBDFsLy0tkBsh2_9Mlb_5Htz7cQMyFDLyR20','dq':'HOzATYD6QtfZoV01vMWDt5uQYOmMCVWDwX4m7Rln1uLInEn1vX4YwdnInAWpxy91qwzkWqyp6X917m_MoVrL3wc-Yc0cLt8Sg_tOFgbqTQtRCFNu1nVji5fiXb7PG-On5YYG8zs1bmqmlUUCwn2mGpypPDDfIhAaakANjrXb0nc','e':'AQAB','ext':true,'key_ops':['decrypt'],'kty':'RSA','n':'lWbIVdJiKqg9KQTB14uKlK2ogeU802_wm1E4s8EC33mGV2xJTuRki_SF9WmRYjgj6aDTyEuBWvTDohuaYNh1HbJxJ_yHNhqKg3HD3MRcUDuOeW1Ixt0wFW-Ui1UJGrVFLjz_bHQvZn4M1LLZWYtegxg_DVp5EZsa6-U1fQvwdyrg9A9JLhync-49vUnX_k67wPKwrsz9kz7a1GuZAceMPuJxL_fkjCwyEzwsDyhUFoWycChVkB7bvlIzCsEWzcH1AgfNTxTPHpX87nQb64qtekQvLSXLMoefgO957Jh1BwrTqzZqmjWyIFhduDWv4hUKhY1uy6N0Ms1cgOr8Viq41w','p':'yNp2C4D08bo3DaoDs1ymJvO-sfJ-Q7MH9FM9o77e2_W57JSW5jbqsnIOoMZSHljI3MbRp7n7f70PBL6BPJSg1dpNAtaxigBl08LvBDOakTKML3PR8L_xMTD_k6-JMrsgiDmNBgEAKed3qtNbP0pwVaMIFNPwo2eDwevrzKwgXC0','q':'vmviH_jLJksnTJPKdZq-er-U7paqxmk0kCjzQF_-xeyY7unpM6if2Po5zc9XOUz9Nck1z9W9CljpCIFGT4y45Drfs8P6ppE6BBwifko5WFLbp4zFpfMKFIGoWe6wh9mga1XggUBVAaxzGfz3X1az9x89nG51FP13aDzjzzpc15M','qi':'QHYZgvwwhY_Kq7oYxb31WgZu-Yj5fsJACJxe80cUzpNX9aqKRvFXAWfTSx2XxI4AqJhvxT7HheW4hUhuSZ3szPVv_LtjEFLN_2Lg4qiiWJfBZBBjrbf7Xk7j3rMCjTRcPD61O1PXSwuq_WzLaAkHtATdVrBd0AD-exwV8Yw-nis'},
+        signedBuffer: new Uint8Array([144,110,66,177,132,162,215,118,220,161,32,20,241,207,145,118,40,82,43,156,167,60,207,126,110,28,42,6,154,214,80,24,61,117,1,245,125,122,200,36,22,147,162,227,159,188,235,130,127,164,63,66,236,77,93,254,228,9,216,151,25,35,96,105,26,92,59,216,93,121,53,151,5,255,20,211,145,101,82,225,191,25,157,35,126,178,192,74,105,163,125,158,115,183,1,150,232,64,200,82,230,209,236,76,161,195,160,46,74,199,111,69,155,17,80,91,115,149,140,75,120,254,72,106,83,158,214,81,73,109,250,29,45,236,10,233,2,142,252,187,183,109,136,70,227,125,175,53,63,94,115,194,23,223,102,107,194,172,201,94,103,27,12,57,44,170,70,12,98,57,217,194,91,145,152,119,124,216,32,25,48,28,38,208,103,124,43,195,32,235,149,92,235,85,13,6,242,37,20,15,25,73,248,231,72,131,94,229,82,118,136,233,242,133,29,134,44,144,71,60,198,166,40,247,64,162,236,66,91,49,6,167,219,239,99,209,31,1,189,233,131,254,32,181,189,73,73,194,40,104,243,155,6,126,217,22]).buffer,
+    },
+    A128GCM: {
+        shared: {'alg':'A128GCM','ext':true,'k':'pUEvtaxuFfTi82c9bDltzg','key_ops':['encrypt','decrypt'],'kty':'oct'},
+        raw: new Uint8Array([165,65,47,181,172,110,21,244,226,243,103,61,108,57,109,206]).buffer,
+        signedBuffer: new Uint8Array([22,25,155,168,9,99,74,80,94,76,75,86,115,247,25,8,64,163,184]).buffer,
+        iv: gcmIv
+    },
+    A192GCM: {
+        shared: {'alg':'A192GCM','ext':true,'k':'Hh3r4lL5rEv4YP1n3ckOtmjbHG5T62gH','key_ops':['encrypt','decrypt'],'kty':'oct'},
+        raw: new Uint8Array([30,29,235,226,82,249,172,75,248,96,253,103,221,201,14,182,104,219,28,110,83,235,104,7]).buffer,
+        signedBuffer: new Uint8Array([128,75,222,146,44,248,184,198,204,192,255,72,115,160,38,27,188,184,139]).buffer,
+        iv: gcmIv
+    },
+    A256GCM: {
+        shared: {'alg':'A256GCM','ext':true,'k':'EP7FtC4EQskessDmCBJwTTz2yhnnn_FuSxx-JSRpPok','key_ops':['encrypt','decrypt'],'kty':'oct'},
+        raw: new Uint8Array([16,254,197,180,46,4,66,201,30,178,192,230,8,18,112,77,60,246,202,25,231,159,241,110,75,28,126,37,36,105,62,137]).buffer,
+        signedBuffer: new Uint8Array([172,227,36,251,72,218,165,208,13,142,109,206,247,1,10,52,221,204,151]).buffer,
+        iv: gcmIv
+    },
+    A128CBC: {
+        shared: {'alg':'A128CBC','ext':true,'k':'9IlgFBITdX3OsG3J9zMS6A','key_ops':['encrypt','decrypt'],'kty':'oct'},
+        raw: new Uint8Array([244,137,96,20,18,19,117,125,206,176,109,201,247,51,18,232]).buffer,
+        signedBuffer: new Uint8Array([50,72,189,31,211,175,168,71,217,85,143,165,231,41,192,86]).buffer,
+        iv: cbcIv
+    },
+    A192CBC: {
+        shared: {'alg':'A192CBC','ext':true,'k':'07fhYRWNhmO86DsnnnAr6luciYF4aZeP','key_ops':['encrypt','decrypt'],'kty':'oct'},
+        raw: new Uint8Array([211,183,225,97,21,141,134,99,188,232,59,39,158,112,43,234,91,156,137,129,120,105,151,143]).buffer,
+        signedBuffer: new Uint8Array([186,192,124,107,239,113,144,192,4,246,3,19,79,212,245,183]).buffer,
+        iv: cbcIv
+    },
+    A256CBC: {
+        shared: {'alg':'A256CBC','ext':true,'k':'6CtfkDB0LfttGcmOzwDgS4tMxv681qTLDTpPb49N-FY','key_ops':['encrypt','decrypt'],'kty':'oct'},
+        raw: new Uint8Array([232,43,95,144,48,116,45,251,109,25,201,142,207,0,224,75,139,76,198,254,188,214,164,203,13,58,79,111,143,77,248,86]).buffer,
+        signedBuffer: new Uint8Array([204,204,157,56,179,226,125,131,157,246,5,248,117,246,183,76]).buffer,
+        iv: cbcIv
+    },
   };
-
-// async function generateKey(alg) {
-//     const algo = assign({
-//         modulusLength: 2048,
-//         publicExponent: new Uint8Array([0x01, 0x00, 0x01])
-//     }, algorithms[alg]);
-//     const {publicKey, privateKey} = await subtle.generateKey(
-//         algo,
-//         true,
-//         ['sign', 'verify']
-//     );
-//     const pub = await subtle.exportKey('jwk', publicKey);
-//     const priv = await subtle.exportKey('jwk', privateKey);
-//     console.log(JSON.stringify({
-//         public: pub,
-//         private: priv,
-//         signedBuffer: new Uint8Array(await subtle.sign(
-//             clone(algorithms[alg]),
-//             privateKey,
-//             testBuffer
-//         ))
-//     }, null, 2));
-// }
 
   wdescribe('webcrypto-test-suite', function() {
     ['HS256', 'HS384', 'HS512'].map(function(alg) {
@@ -208,6 +313,23 @@ module.exports = function(config) {
             expect(res.k).toEqual(key.k);
           });
         });
+
+        wit('"raw" importKey and exportKey', function() {
+            var key = keys[alg].raw;
+            return subtle.importKey(
+              'raw', // format
+              key,
+              clone(algorithms[alg]), // algo
+              true, // extractable
+              ['sign', 'verify'] // usages
+            )
+            .then(function(k) {
+              return subtle.exportKey('raw', k);
+            })
+            .then(function(res) {
+              expect(res).toEqual(key);
+            });
+          });
 
         wit('sign', function() {
           return subtle.importKey(
@@ -744,6 +866,82 @@ module.exports = function(config) {
           });
         });
       });
+    });
+
+    ['A128GCM', 'A192GCM', 'A256GCM', 'A128CBC', 'A192CBC', 'A256CBC'].map(function(alg) {
+        wdescribe(alg, function() {
+            wit('generateKey', function() {
+                return subtle.generateKey(
+                    clone(algorithms[alg]), // algo
+                    true, // extractable
+                    ['encrypt', 'decrypt'] // usages
+                )
+                .then(function(res) {
+                    expect(res).toBeDefined();
+                    expect(res.type).toEqual('secret');
+                    expect(res.extractable).toEqual(true);
+                    expect(clone(res.usages).sort()).toEqual(['decrypt', 'encrypt']);
+                    expect(res.algorithm).toBeDefined();
+                    expect(res.algorithm.name).toEqual(algorithms[alg].name);
+                });
+            });
+
+            wit('importKey', function() {
+                return subtle.importKey(
+                    'jwk', // format
+                    keys[alg].shared, // key
+                    clone(algorithms[alg]), // algo
+                    true, // extractable
+                    ['encrypt', 'decrypt'] // usages
+                )
+                .then(function(res) {
+                    expect(res).toBeDefined();
+                    expect(res.type).toEqual('secret');
+                    expect(res.extractable).toEqual(true);
+                    expect(clone(res.usages).sort()).toEqual(['decrypt', 'encrypt']);
+                    expect(res.algorithm).toBeDefined();
+                    expect(res.algorithm.name).toEqual(algorithms[alg].name);
+                });
+            });
+
+            wit('exportKey', function() {
+                var key = keys[alg].shared;
+                return subtle.importKey(
+                    'jwk', // format
+                    key,
+                    clone(algorithms[alg]), // algo
+                    true, // extractable
+                    ['encrypt', 'decrypt'] // usages
+                )
+                .then(function(k) {
+                    return subtle.exportKey('jwk', k);
+                })
+                .then(function(res) {
+                    expect(res.alg).toEqual(key.alg);
+                    expect(res.ext).toEqual(key.ext);
+                    expect(clone(res.key_ops).sort()).toEqual(['decrypt', 'encrypt']);
+                    expect(res.kty).toEqual(key.kty);
+                    expect(res.k).toEqual(key.k);
+                });
+            });
+
+            wit('"raw" importKey and exportKey', function() {
+                var key = keys[alg].raw;
+                return subtle.importKey(
+                    'raw', // format
+                    key,
+                    clone(algorithms[alg]), // algo
+                    true, // extractable
+                    ['encrypt', 'decrypt'] // usages
+                )
+                .then(function(k) {
+                    return subtle.exportKey('raw', k);
+                })
+                .then(function(res) {
+                    expect(res).toEqual(key);
+                });
+            });
+        });
     });
   });
 }
