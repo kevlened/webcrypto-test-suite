@@ -327,7 +327,8 @@ module.exports = function(config) {
               return subtle.exportKey('raw', k);
             })
             .then(function(res) {
-              expect(res).toEqual(key);
+              expect(res.constructor).toBe(ArrayBuffer);
+              expect(new Uint8Array(key)).toEqual(new Uint8Array(res));
             });
           });
 
@@ -557,143 +558,44 @@ module.exports = function(config) {
     });
 
     ['PS256', 'PS384', 'PS512'].map(function(alg) {
-        wdescribe(alg, function() {
-          wit('generateKey', function() {
-            var algo = assign({
-              modulusLength: 2048,
-              publicExponent: new Uint8Array([0x01, 0x00, 0x01])
-            }, algorithms[alg]);
-            return subtle.generateKey(
-              algo,
-              true, // extractable
-              ['sign', 'verify'] // usages
-            )
-            .then(function(res) {
-              expect(res.publicKey).toBeDefined();
-              expect(res.publicKey.type).toEqual('public');
-              expect(res.publicKey.extractable).toEqual(true);
-              expect(res.publicKey.usages).toEqual(['verify']);
-              expect(res.publicKey.algorithm).toBeDefined();
-              expect(res.publicKey.algorithm.name).toEqual(algorithms[alg].name);
-              expect(res.publicKey.algorithm.hash).toBeDefined();
-              expect(res.publicKey.algorithm.hash.name).toEqual(algorithms[alg].hash.name);
-              expect(res.publicKey.algorithm.modulusLength).toEqual(2048);
-              expect(res.publicKey.algorithm.publicExponent).toEqual(new Uint8Array([1,0,1]));
-      
-              expect(res.privateKey).toBeDefined();
-              expect(res.privateKey.type).toEqual('private');
-              expect(res.privateKey.extractable).toEqual(true);
-              expect(res.privateKey.usages).toEqual(['sign']);
-              expect(res.privateKey.algorithm).toBeDefined();
-              expect(res.privateKey.algorithm.name).toEqual(algorithms[alg].name);
-              expect(res.privateKey.algorithm.hash).toBeDefined();
-              expect(res.privateKey.algorithm.hash.name).toEqual(algorithms[alg].hash.name);
-              expect(res.privateKey.algorithm.modulusLength).toEqual(2048);
-              expect(res.privateKey.algorithm.publicExponent).toEqual(new Uint8Array([1,0,1]));
-            });
+      wdescribe(alg, function() {
+        wit('generateKey', function() {
+          var algo = assign({
+            modulusLength: 2048,
+            publicExponent: new Uint8Array([0x01, 0x00, 0x01])
+          }, algorithms[alg]);
+          return subtle.generateKey(
+            algo,
+            true, // extractable
+            ['sign', 'verify'] // usages
+          )
+          .then(function(res) {
+            expect(res.publicKey).toBeDefined();
+            expect(res.publicKey.type).toEqual('public');
+            expect(res.publicKey.extractable).toEqual(true);
+            expect(res.publicKey.usages).toEqual(['verify']);
+            expect(res.publicKey.algorithm).toBeDefined();
+            expect(res.publicKey.algorithm.name).toEqual(algorithms[alg].name);
+            expect(res.publicKey.algorithm.hash).toBeDefined();
+            expect(res.publicKey.algorithm.hash.name).toEqual(algorithms[alg].hash.name);
+            expect(res.publicKey.algorithm.modulusLength).toEqual(2048);
+            expect(res.publicKey.algorithm.publicExponent).toEqual(new Uint8Array([1,0,1]));
+    
+            expect(res.privateKey).toBeDefined();
+            expect(res.privateKey.type).toEqual('private');
+            expect(res.privateKey.extractable).toEqual(true);
+            expect(res.privateKey.usages).toEqual(['sign']);
+            expect(res.privateKey.algorithm).toBeDefined();
+            expect(res.privateKey.algorithm.name).toEqual(algorithms[alg].name);
+            expect(res.privateKey.algorithm.hash).toBeDefined();
+            expect(res.privateKey.algorithm.hash.name).toEqual(algorithms[alg].hash.name);
+            expect(res.privateKey.algorithm.modulusLength).toEqual(2048);
+            expect(res.privateKey.algorithm.publicExponent).toEqual(new Uint8Array([1,0,1]));
           });
-  
-          wdescribe('importKey', function() {
-            wit('imports a private key with key_ops', function() {
-              return subtle.importKey(
-                'jwk', // format
-                keys[alg].private, // key
-                clone(algorithms[alg]), // algo
-                true, // extractable
-                ['sign'] // usages
-              )
-              .then(function(res) {
-                expect(res).toBeDefined();
-                expect(res.type).toEqual('private');
-                expect(res.extractable).toEqual(true);
-                expect(res.usages).toEqual(['sign']);
-                expect(res.algorithm).toBeDefined();
-                expect(res.algorithm.name).toEqual(algorithms[alg].name);
-                expect(res.algorithm.hash).toBeDefined();
-                expect(res.algorithm.hash.name).toEqual(algorithms[alg].hash.name);
-                expect(res.algorithm.modulusLength).toEqual(2048);
-                expect(res.algorithm.publicExponent).toEqual(new Uint8Array([1,0,1]));
-              });
-            });
-  
-            wit('imports a private key without key_ops', function() {
-              var key = assign({}, keys[alg].private);
-              delete key.key_ops;
-              return subtle.importKey(
-                'jwk', // format
-                key,
-                clone(algorithms[alg]), // algo
-                true, // extractable
-                ['sign'] // usages
-              )
-              .then(function(res) {
-                expect(res).toBeDefined();
-                expect(res.type).toEqual('private');
-                expect(res.extractable).toEqual(true);
-                expect(res.usages).toEqual(['sign']);
-                expect(res.algorithm).toBeDefined();
-                expect(res.algorithm.name).toEqual(algorithms[alg].name);
-                expect(res.algorithm.hash).toBeDefined();
-                expect(res.algorithm.hash.name).toEqual(algorithms[alg].hash.name);
-                expect(res.algorithm.modulusLength).toEqual(2048);
-                expect(res.algorithm.publicExponent).toEqual(new Uint8Array([1,0,1]));
-              });
-            });
-  
-            wit('imports a public key without key_ops', function() {
-              var key = assign({}, keys[alg].public);
-              delete key.key_ops;
-              return subtle.importKey(
-                'jwk', // format
-                key,
-                clone(algorithms[alg]), // algo
-                true, // extractable
-                ['verify'] // usages
-              )
-              .then(function(res) {
-                expect(res).toBeDefined();
-                expect(res.type).toEqual('public');
-                expect(res.extractable).toEqual(true);
-                expect(res.usages).toEqual(['verify']);
-                expect(res.algorithm).toBeDefined();
-                expect(res.algorithm.name).toEqual(algorithms[alg].name);
-                expect(res.algorithm.hash).toBeDefined();
-                expect(res.algorithm.hash.name).toEqual(algorithms[alg].hash.name);
-                expect(res.algorithm.modulusLength).toEqual(2048);
-                expect(res.algorithm.publicExponent).toEqual(new Uint8Array([1,0,1]));
-              });
-            });
-          });
-  
-          wit('exportKey', function() {
-            var key = keys[alg].private;
-            return subtle.importKey(
-              'jwk', // format
-              key,
-              clone(algorithms[alg]), // algo
-              true, // extractable
-              ['sign'] // usages
-            )
-            .then(function(k) {
-              return subtle.exportKey('jwk', k);
-            })
-            .then(function(res) {
-              expect(res.alg).toEqual(key.alg);
-              expect(res.d).toEqual(key.d);
-              expect(res.dp).toEqual(key.dp);
-              expect(res.dq).toEqual(key.dq);
-              expect(res.e).toEqual(key.e);
-              expect(res.ext).toEqual(key.ext);
-              expect(res.key_ops).toEqual(key.key_ops);
-              expect(res.kty).toEqual(key.kty);
-              expect(res.n).toEqual(key.n);
-              expect(res.p).toEqual(key.p);
-              expect(res.q).toEqual(key.q);
-              expect(res.qi).toEqual(key.qi);
-            });
-          });
-  
-          wit('sign', function() {
+        });
+
+        wdescribe('importKey', function() {
+          wit('imports a private key with key_ops', function() {
             return subtle.importKey(
               'jwk', // format
               keys[alg].private, // key
@@ -701,41 +603,140 @@ module.exports = function(config) {
               true, // extractable
               ['sign'] // usages
             )
-            .then(function(signingKey) {
-              return subtle.sign(
-                clone(algorithms[alg]), // algo
-                signingKey,
-                testBuffer // buffer
-              );
-            })
-            .then(function(signature) {
-              expect(signature.constructor).toBe(ArrayBuffer);
-              expect(new Uint8Array(signature).length).toEqual(new Uint8Array(keys[alg].signedBuffer).length);
+            .then(function(res) {
+              expect(res).toBeDefined();
+              expect(res.type).toEqual('private');
+              expect(res.extractable).toEqual(true);
+              expect(res.usages).toEqual(['sign']);
+              expect(res.algorithm).toBeDefined();
+              expect(res.algorithm.name).toEqual(algorithms[alg].name);
+              expect(res.algorithm.hash).toBeDefined();
+              expect(res.algorithm.hash.name).toEqual(algorithms[alg].hash.name);
+              expect(res.algorithm.modulusLength).toEqual(2048);
+              expect(res.algorithm.publicExponent).toEqual(new Uint8Array([1,0,1]));
             });
           });
-  
-          wit('verify', function() {
+
+          wit('imports a private key without key_ops', function() {
+            var key = assign({}, keys[alg].private);
+            delete key.key_ops;
             return subtle.importKey(
               'jwk', // format
-              keys[alg].public, // key
+              key,
+              clone(algorithms[alg]), // algo
+              true, // extractable
+              ['sign'] // usages
+            )
+            .then(function(res) {
+              expect(res).toBeDefined();
+              expect(res.type).toEqual('private');
+              expect(res.extractable).toEqual(true);
+              expect(res.usages).toEqual(['sign']);
+              expect(res.algorithm).toBeDefined();
+              expect(res.algorithm.name).toEqual(algorithms[alg].name);
+              expect(res.algorithm.hash).toBeDefined();
+              expect(res.algorithm.hash.name).toEqual(algorithms[alg].hash.name);
+              expect(res.algorithm.modulusLength).toEqual(2048);
+              expect(res.algorithm.publicExponent).toEqual(new Uint8Array([1,0,1]));
+            });
+          });
+
+          wit('imports a public key without key_ops', function() {
+            var key = assign({}, keys[alg].public);
+            delete key.key_ops;
+            return subtle.importKey(
+              'jwk', // format
+              key,
               clone(algorithms[alg]), // algo
               true, // extractable
               ['verify'] // usages
             )
-            .then(function(verifyingKey) {
-              return subtle.verify(
-                clone(algorithms[alg]), // algo
-                verifyingKey, // key
-                keys[alg].signedBuffer,
-                testBuffer
-              );
-            })
-            .then(function(result) {
-              expect(result).toEqual(true);
+            .then(function(res) {
+              expect(res).toBeDefined();
+              expect(res.type).toEqual('public');
+              expect(res.extractable).toEqual(true);
+              expect(res.usages).toEqual(['verify']);
+              expect(res.algorithm).toBeDefined();
+              expect(res.algorithm.name).toEqual(algorithms[alg].name);
+              expect(res.algorithm.hash).toBeDefined();
+              expect(res.algorithm.hash.name).toEqual(algorithms[alg].hash.name);
+              expect(res.algorithm.modulusLength).toEqual(2048);
+              expect(res.algorithm.publicExponent).toEqual(new Uint8Array([1,0,1]));
             });
           });
         });
+
+        wit('exportKey', function() {
+          var key = keys[alg].private;
+          return subtle.importKey(
+            'jwk', // format
+            key,
+            clone(algorithms[alg]), // algo
+            true, // extractable
+            ['sign'] // usages
+          )
+          .then(function(k) {
+            return subtle.exportKey('jwk', k);
+          })
+          .then(function(res) {
+            expect(res.alg).toEqual(key.alg);
+            expect(res.d).toEqual(key.d);
+            expect(res.dp).toEqual(key.dp);
+            expect(res.dq).toEqual(key.dq);
+            expect(res.e).toEqual(key.e);
+            expect(res.ext).toEqual(key.ext);
+            expect(res.key_ops).toEqual(key.key_ops);
+            expect(res.kty).toEqual(key.kty);
+            expect(res.n).toEqual(key.n);
+            expect(res.p).toEqual(key.p);
+            expect(res.q).toEqual(key.q);
+            expect(res.qi).toEqual(key.qi);
+          });
+        });
+
+        wit('sign', function() {
+          return subtle.importKey(
+            'jwk', // format
+            keys[alg].private, // key
+            clone(algorithms[alg]), // algo
+            true, // extractable
+            ['sign'] // usages
+          )
+          .then(function(signingKey) {
+            return subtle.sign(
+              clone(algorithms[alg]), // algo
+              signingKey,
+              testBuffer // buffer
+            );
+          })
+          .then(function(signature) {
+            expect(signature.constructor).toBe(ArrayBuffer);
+            expect(new Uint8Array(signature).length).toEqual(new Uint8Array(keys[alg].signedBuffer).length);
+          });
+        });
+
+        wit('verify', function() {
+          return subtle.importKey(
+            'jwk', // format
+            keys[alg].public, // key
+            clone(algorithms[alg]), // algo
+            true, // extractable
+            ['verify'] // usages
+          )
+          .then(function(verifyingKey) {
+            return subtle.verify(
+              clone(algorithms[alg]), // algo
+              verifyingKey, // key
+              keys[alg].signedBuffer,
+              testBuffer
+            );
+          })
+          .then(function(result) {
+            expect(result).toEqual(true);
+          });
+        });
       });
+    });
 
     ['ES256', 'ES384', 'ES512'].map(function(alg) {
       wdescribe(alg, function() {
@@ -869,79 +870,80 @@ module.exports = function(config) {
     });
 
     ['A128GCM', 'A192GCM', 'A256GCM', 'A128CBC', 'A192CBC', 'A256CBC'].map(function(alg) {
-        wdescribe(alg, function() {
-            wit('generateKey', function() {
-                return subtle.generateKey(
-                    clone(algorithms[alg]), // algo
-                    true, // extractable
-                    ['encrypt', 'decrypt'] // usages
-                )
-                .then(function(res) {
-                    expect(res).toBeDefined();
-                    expect(res.type).toEqual('secret');
-                    expect(res.extractable).toEqual(true);
-                    expect(clone(res.usages).sort()).toEqual(['decrypt', 'encrypt']);
-                    expect(res.algorithm).toBeDefined();
-                    expect(res.algorithm.name).toEqual(algorithms[alg].name);
-                });
-            });
-
-            wit('importKey', function() {
-                return subtle.importKey(
-                    'jwk', // format
-                    keys[alg].shared, // key
-                    clone(algorithms[alg]), // algo
-                    true, // extractable
-                    ['encrypt', 'decrypt'] // usages
-                )
-                .then(function(res) {
-                    expect(res).toBeDefined();
-                    expect(res.type).toEqual('secret');
-                    expect(res.extractable).toEqual(true);
-                    expect(clone(res.usages).sort()).toEqual(['decrypt', 'encrypt']);
-                    expect(res.algorithm).toBeDefined();
-                    expect(res.algorithm.name).toEqual(algorithms[alg].name);
-                });
-            });
-
-            wit('exportKey', function() {
-                var key = keys[alg].shared;
-                return subtle.importKey(
-                    'jwk', // format
-                    key,
-                    clone(algorithms[alg]), // algo
-                    true, // extractable
-                    ['encrypt', 'decrypt'] // usages
-                )
-                .then(function(k) {
-                    return subtle.exportKey('jwk', k);
-                })
-                .then(function(res) {
-                    expect(res.alg).toEqual(key.alg);
-                    expect(res.ext).toEqual(key.ext);
-                    expect(clone(res.key_ops).sort()).toEqual(['decrypt', 'encrypt']);
-                    expect(res.kty).toEqual(key.kty);
-                    expect(res.k).toEqual(key.k);
-                });
-            });
-
-            wit('"raw" importKey and exportKey', function() {
-                var key = keys[alg].raw;
-                return subtle.importKey(
-                    'raw', // format
-                    key,
-                    clone(algorithms[alg]), // algo
-                    true, // extractable
-                    ['encrypt', 'decrypt'] // usages
-                )
-                .then(function(k) {
-                    return subtle.exportKey('raw', k);
-                })
-                .then(function(res) {
-                    expect(res).toEqual(key);
-                });
-            });
+      wdescribe(alg, function() {
+        wit('generateKey', function() {
+          return subtle.generateKey(
+            clone(algorithms[alg]), // algo
+            true, // extractable
+            ['encrypt', 'decrypt'] // usages
+          )
+          .then(function(res) {
+            expect(res).toBeDefined();
+            expect(res.type).toEqual('secret');
+            expect(res.extractable).toEqual(true);
+            expect(clone(res.usages).sort()).toEqual(['decrypt', 'encrypt']);
+            expect(res.algorithm).toBeDefined();
+            expect(res.algorithm.name).toEqual(algorithms[alg].name);
+          });
         });
+        
+        wit('importKey', function() {
+          return subtle.importKey(
+            'jwk', // format
+            keys[alg].shared, // key
+            clone(algorithms[alg]), // algo
+            true, // extractable
+            ['encrypt', 'decrypt'] // usages
+          )
+          .then(function(res) {
+            expect(res).toBeDefined();
+            expect(res.type).toEqual('secret');
+            expect(res.extractable).toEqual(true);
+            expect(clone(res.usages).sort()).toEqual(['decrypt', 'encrypt']);
+            expect(res.algorithm).toBeDefined();
+            expect(res.algorithm.name).toEqual(algorithms[alg].name);
+          });
+        });
+        
+        wit('exportKey', function() {
+          var key = keys[alg].shared;
+          return subtle.importKey(
+            'jwk', // format
+            key,
+            clone(algorithms[alg]), // algo
+            true, // extractable
+            ['encrypt', 'decrypt'] // usages
+          )
+          .then(function(k) {
+            return subtle.exportKey('jwk', k);
+          })
+          .then(function(res) {
+            expect(res.alg).toEqual(key.alg);
+            expect(res.ext).toEqual(key.ext);
+            expect(clone(res.key_ops).sort()).toEqual(['decrypt', 'encrypt']);
+            expect(res.kty).toEqual(key.kty);
+            expect(res.k).toEqual(key.k);
+          });
+        });
+          
+        wit('"raw" importKey and exportKey', function() {
+          var key = keys[alg].raw;
+          return subtle.importKey(
+            'raw', // format
+            key,
+            clone(algorithms[alg]), // algo
+            true, // extractable
+            ['encrypt', 'decrypt'] // usages
+          )
+          .then(function(k) {
+            return subtle.exportKey('raw', k);
+          })
+          .then(function(res) {
+            expect(res.constructor).toBe(ArrayBuffer);
+            expect(new Uint8Array(key)).toEqual(new Uint8Array(res));
+          });
+        });
+      });
     });
   });
 }
