@@ -79,6 +79,7 @@ module.exports = function(config) {
     A128CBC: { name: 'AES-CBC', length: 128 },
     A192CBC: { name: 'AES-CBC', length: 192 },
     A256CBC: { name: 'AES-CBC', length: 256 },
+    PBKDF2: { name: 'PBKDF2' }
   };
 
 //   const wrapped = {
@@ -134,6 +135,12 @@ module.exports = function(config) {
 // return;
 
   var keys = {
+    PBKDF2: {
+      shared: {ext: true, k: 'AQID', key_ops: ['deriveKey', 'deriveBits'], kty: 'oct'},
+      raw: testBuffer,
+      derivedKey: {alg: 'HS256', ext: true, k: 'pR7dV5kbNGH1wkMKcXFXv618lW3M7HiDr8aCn-3LyPysJFNhBtY8JHIosvvJc7jKt7LN_H_uDuUXax5otUFAmA', key_ops: ['sign', 'verify'], kty: 'oct'},
+      derivedBits: new Uint8Array([165, 30, 221, 87, 153, 27, 52, 97]).buffer
+    },
     HS256: {
       shared: {alg: 'HS256', ext: true, k: 'exbIckCHFGdUfuPRwjXFXK_IqYMpFM30LoJYSHp-y4IQyO0YRDh0atzudr1S0UK1_tKn5BehGDk129N1is179g', key_ops: ['sign', 'verify'], kty: 'oct'},
       raw: new Uint8Array([123,22,200,114,64,135,20,103,84,126,227,209,194,53,197,92,175,200,169,131,41,20,205,244,46,130,88,72,122,126,203,130,16,200,237,24,68,56,116,106,220,238,118,189,82,209,66,181,254,210,167,228,23,161,24,57,53,219,211,117,138,205,123,246]).buffer,
@@ -253,6 +260,84 @@ module.exports = function(config) {
   };
 
   wdescribe('webcrypto-test-suite', function() {
+    wdescribe('PBKDF2', function() {
+      const alg = 'PBKDF2';
+
+      // wit('generateKey');
+
+      wit('importKey', function() {
+        return subtle.importKey(
+          'raw', // format
+          testBuffer, // key
+          clone(algorithms[alg]), // algo
+          false, // extractable
+          ['deriveKey', 'deriveBits'] // usages
+        )
+        .then(function(res) {
+          expect(res).toBeDefined();
+        });
+      });
+
+      wit('deriveKey', function() {
+        return subtle.importKey(
+          'raw', // format
+          keys[alg].raw, // key
+          clone(algorithms[alg]), // algo
+          false, // extractable
+          ['deriveKey', 'deriveBits'] // usages
+        )
+        .then(function(key) {
+          return subtle.deriveKey(
+            {
+                name: alg,
+                salt: testBuffer,
+                iterations: 1000,
+                hash: {name: 'SHA-1'},
+            },
+            key,
+            clone(algorithms['HS256']),
+            true, //whether the derived key is extractable (i.e. can be used in exportKey)
+            ['sign', 'verify'] //limited to the options in that algorithm's importKey
+          )
+        })
+        .then(function(res) {
+          expect(res).toBeDefined();
+          expect(res.type).toEqual('secret');
+          expect(res.extractable).toEqual(true);
+          expect(res.usages).toEqual(['sign', 'verify']);
+          expect(res.algorithm).toBeDefined();
+          expect(res.algorithm.name).toEqual(algorithms['HS256'].name);
+          expect(res.algorithm.hash).toBeDefined();
+          expect(res.algorithm.hash.name).toEqual(algorithms['HS256'].hash.name);
+        });
+      });
+
+      wit('deriveBits', function() {
+        return subtle.importKey(
+          'raw', // format
+          keys[alg].raw, // key
+          clone(algorithms[alg]), // algo
+          false, // extractable
+          ['deriveKey', 'deriveBits'] // usages
+        )
+        .then(function(key) {
+          return subtle.deriveBits(
+            {
+                name: alg,
+                salt: testBuffer,
+                iterations: 1000,
+                hash: {name: 'SHA-1'},
+            },
+            key,
+            64
+          );
+        })
+        .then(function(res) {
+          expect(new Uint8Array(res)).toEqual(new Uint8Array(keys[alg].derivedBits));
+        });
+      });
+    });
+
     ['HS256', 'HS384', 'HS512'].map(function(alg) {
       wdescribe(alg, function() {
         wit('generateKey', function() {
