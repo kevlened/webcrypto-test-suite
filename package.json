@@ -44,7 +44,7 @@
     "karma-safari-launcher": "^1.0.0",
     "karma-safaritechpreview-launcher": "0.0.6",
     "karma-virtualbox-edge-launcher": "^1.1.8",
-    "karma-webpack": "^4.0.2",
-    "webpack": "^4.39.3"
+    "karma-webpack": "^5.0.0",
+    "webpack": "^5.75.0"
   }
 }
